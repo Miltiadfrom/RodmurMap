@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Повесть о Родмуре — атлас мира</title>
+<meta name="description" content="Интерактивный атлас мира Родмура: девять земель, города, тракты и предания." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23e7d8bd'/%3E%3Cpath d='M16 4l3.2 8.4L28 16l-8.8 3.6L16 28l-3.2-8.4L4 16l8.8-3.6z' fill='%23a8762a'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <button class="icon-btn only-narrow" id="toggleSidebar" aria-label="Список земель и городов">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+
+  <a class="crest" href="/" aria-label="Повесть о Родмуре">
+    <svg viewBox="0 0 48 48" aria-hidden="true" class="crest-mark">
+      <circle cx="24" cy="24" r="21" class="crest-ring"/>
+      <path d="M24 5l4.3 12.4L41 22l-12.7 4.6L24 43l-4.3-16.4L7 22l12.7-4.6z" class="crest-star"/>
+      <circle cx="24" cy="22" r="3.1" class="crest-core"/>
+    </svg>
+    <span class="crest-text">
+      <strong id="atlasTitle">Повесть о Родмуре</strong>
+      <em id="atlasSubtitle">Атлас мира</em>
+    </span>
+  </a>
+
+  <div class="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+    <input id="search" type="search" placeholder="Город, земля, река…" autocomplete="off" aria-label="Поиск по атласу" />
+    <kbd>/</kbd>
+  </div>
+
+  <div class="topbar-actions">
+    <span class="era" id="era"></span>
+    <button class="ghost-btn keeper-only" id="editorBtn" hidden aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 10-10-3-3L5 16z"/><path d="M14 6l3 3M13 20h7"/></svg>
+      <span>Редактор карты</span>
+    </button>
+    <button class="ghost-btn" id="layersBtn" aria-expanded="false" aria-controls="layersPop">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+      <span>Оформление</span>
+    </button>
+    <button class="keeper-btn" id="keeperBtn">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z"/><path d="M9.5 12l1.9 2 3.4-3.6"/></svg>
+      <span id="keeperBtnLabel">Вход хранителя</span>
+    </button>
+  </div>
+</header>
+
+<aside class="style-panel" id="layersPop" aria-label="Оформление карты" hidden>
+  <div class="style-head">
+    <h3>Оформление карты</h3>
+    <button class="icon-btn" id="closeStyle" aria-label="Закрыть оформление">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+
+  <div class="style-scroll">
+    <section class="style-group">
+      <h4>Рельеф</h4>
+      <label class="ctl">
+        <span>Стиль знаков</span>
+        <select id="reliefSet">
+          <option value="illustrated">Гравюра — подробно</option>
+          <option value="simple">Простые знаки</option>
+        </select>
+      </label>
+      <label class="ctl">
+        <span>Крупность <b id="reliefScaleValue">100%</b></span>
+        <input type="range" id="reliefScale" min="50" max="200" step="5" value="100" />
+      </label>
+      <label class="ctl">
+        <span>Густота <b id="reliefDensityValue">100%</b></span>
+        <input type="range" id="reliefDensity" min="10" max="100" step="5" value="100" />
+      </label>
+      <label class="ctl">
+        <span>Чернила <b id="reliefInkValue">100%</b></span>
+        <input type="range" id="reliefInk" min="10" max="100" step="5" value="100" />
+      </label>
+      <p class="style-note">Знаки рельефа меняются сразу. Их расположение задаётся при пересборке подложки.</p>
+    </section>
+
+    <section class="style-group">
+      <h4>Земли и бумага</h4>
+      <label class="ctl">
+        <span>Насыщенность земель <b id="tintValue">26%</b></span>
+        <input type="range" id="tintStrength" min="0" max="60" step="1" value="26" aria-label="Насыщенность земель" />
+      </label>
+      <div class="layer-grid" id="paperGrid"></div>
+    </section>
+
+    <section class="style-group">
+      <h4>Слои атласа</h4>
+      <div class="layer-grid" id="layerGrid"></div>
+    </section>
+  </div>
+
+  <div class="style-foot">
+    <button class="ghost-btn" id="styleReset">Сбросить</button>
+    <button class="solid-btn keeper-only" id="styleSave">Сохранить для всех</button>
+  </div>
+</aside>
+
+<main class="stage">
+  <aside class="sidebar" id="sidebar" aria-label="Земли и поселения">
+    <div class="sidebar-head">
+      <h2>Девять земель</h2>
+      <button class="icon-btn" id="closeSidebar" aria-label="Скрыть список">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <p class="intro" id="intro"></p>
+    <nav class="lands" id="lands" aria-label="Земли Родмура"></nav>
+    <div class="filter-row" id="filters" role="group" aria-label="Тип поселения"></div>
+    <div class="cities-head">
+      <h2 id="citiesHeading">Поселения</h2>
+      <button class="mini-btn keeper-only" id="addCityBtn" hidden>+ Город</button>
+    </div>
+    <ul class="cities" id="cities"></ul>
+    <footer class="sidebar-foot">
+      <span id="statLine"></span>
+      <a href="/api/export" id="exportLink" download>Выгрузить JSON</a>
+    </footer>
+  </aside>
+
+  <section class="map-wrap" id="mapWrap" aria-label="Карта Родмура">
+    <svg id="atlas" role="img" aria-label="Карта мира Родмур" preserveAspectRatio="xMidYMid meet"></svg>
+
+    <div class="map-chrome">
+      <svg class="compass" viewBox="0 0 100 100" aria-hidden="true">
+        <circle class="ring" cx="50" cy="52" r="38"/>
+        <circle class="ring thin" cx="50" cy="52" r="30"/>
+        <path class="ray lit" d="M50 18 L55 49 L50 52 L45 49 Z"/>
+        <path class="ray" d="M50 18 L55 49 L50 52 L45 49 Z" transform="rotate(90 50 52)"/>
+        <path class="ray" d="M50 18 L55 49 L50 52 L45 49 Z" transform="rotate(180 50 52)"/>
+        <path class="ray" d="M50 18 L55 49 L50 52 L45 49 Z" transform="rotate(270 50 52)"/>
+        <path class="ray" d="M50 30 L53 49 L50 52 L47 49 Z" transform="rotate(45 50 52)"/>
+        <path class="ray" d="M50 30 L53 49 L50 52 L47 49 Z" transform="rotate(135 50 52)"/>
+        <path class="ray" d="M50 30 L53 49 L50 52 L47 49 Z" transform="rotate(225 50 52)"/>
+        <path class="ray" d="M50 30 L53 49 L50 52 L47 49 Z" transform="rotate(315 50 52)"/>
+        <circle cx="50" cy="52" r="2.4" fill="currentColor"/>
+        <text x="50" y="11">С</text>
+      </svg>
+      <div class="zoom-stack">
+        <button class="icon-btn" id="zoomIn" aria-label="Приблизить"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="icon-btn" id="zoomOut" aria-label="Отдалить"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <button class="icon-btn" id="zoomFit" aria-label="Показать весь мир"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 15v5h-5M15 4h5v5M9 20H4v-5"/></svg></button>
+      </div>
+      <div class="scale" id="scale"><span id="scaleLabel"></span><i id="scaleBar"></i></div>
+    </div>
+
+    <div class="editor" id="editor" hidden>
+      <div class="editor-rail" id="editorRail" role="toolbar" aria-label="Инструменты редактора карты"></div>
+
+      <aside class="editor-panel" aria-label="Настройки инструмента">
+        <header class="editor-head">
+          <h3>Редактор карты</h3>
+          <button class="solid-btn" id="editorExit">Готово</button>
+        </header>
+        <div class="editor-scroll">
+          <section class="editor-block">
+            <h4 id="editorToolName">Выбор и перенос</h4>
+            <p class="editor-note" id="editorToolHint"></p>
+          </section>
+          <section class="editor-block" id="editorControls"></section>
+          <section class="editor-block" id="editorSelection"></section>
+          <section class="editor-block">
+            <h4>Правки на карте</h4>
+            <p class="editor-count" id="editorCount"></p>
+            <p class="editor-note">Каждая правка сразу пишется в атлас и видна посетителям. Отмена — Ctrl+Z, возврат — Ctrl+Shift+Z.</p>
+          </section>
+        </div>
+        <footer class="editor-foot">
+          <button class="ghost-btn" id="editorUndo" disabled>↶ Отменить</button>
+          <button class="ghost-btn" id="editorRedo" disabled>↷ Вернуть</button>
+        </footer>
+      </aside>
+    </div>
+
+    <div class="hint" id="hint">Колесо — масштаб, перетаскивание — обзор, щелчок — сведения</div>
+    <div class="tooltip" id="tooltip" hidden></div>
+    <div class="loading" id="loading"><span class="spinner"></span>Чертим карту…</div>
+    <div class="place-mode" id="placeMode" hidden>Щёлкните по карте, чтобы поставить город <button class="mini-btn" id="cancelPlace">Отмена</button></div>
+  </section>
+
+  <aside class="detail" id="detail" aria-live="polite" hidden>
+    <button class="icon-btn detail-close" id="detailClose" aria-label="Закрыть сведения">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="detail-body" id="detailBody"></div>
+  </aside>
+</main>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<dialog class="modal" id="loginModal">
+  <form method="dialog" class="modal-card" id="loginForm">
+    <h2>Вход хранителя</h2>
+    <p>Посетители видят атлас без изменений. Правки доступны хранителю мира.</p>
+    <label>Пароль<input type="password" id="password" autocomplete="current-password" required /></label>
+    <p class="error" id="loginError" hidden></p>
+    <div class="modal-actions">
+      <button type="button" class="ghost-btn" data-close>Отмена</button>
+      <button type="submit" class="solid-btn">Войти</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="modal wide" id="keeperModal">
+  <div class="modal-card">
+    <h2>Панель хранителя</h2>
+    <div class="keeper-tabs" role="tablist">
+      <button role="tab" class="tab active" data-tab="history">Ревизии</button>
+      <button role="tab" class="tab" data-tab="meta">Титул атласа</button>
+      <button role="tab" class="tab" data-tab="security">Пароль</button>
+      <button role="tab" class="tab" data-tab="data">Данные</button>
+    </div>
+    <div class="tab-body" data-panel="history"><div id="historyList" class="history"></div></div>
+    <div class="tab-body" data-panel="meta" hidden>
+      <form id="metaForm" class="form">
+        <p class="error" hidden></p>
+        <label>Название<input name="title" maxlength="120" /></label>
+        <label>Подзаголовок<input name="subtitle" maxlength="120" /></label>
+        <label>Летоисчисление<input name="era" maxlength="120" /></label>
+        <label>Вступление<textarea name="intro" rows="4" maxlength="2000"></textarea></label>
+        <div class="modal-actions"><button type="submit" class="solid-btn">Сохранить титул</button></div>
+      </form>
+    </div>
+    <div class="tab-body" data-panel="security" hidden>
+      <form id="passwordForm" class="form">
+        <label>Текущий пароль<input type="password" name="current" autocomplete="current-password" required /></label>
+        <label>Новый пароль<input type="password" name="next" minlength="8" autocomplete="new-password" required /></label>
+        <p class="error" hidden></p>
+        <div class="modal-actions"><button type="submit" class="solid-btn">Сменить пароль</button></div>
+      </form>
+    </div>
+    <div class="tab-body" data-panel="data" hidden>
+      <p class="muted">Полная выгрузка мира и загрузка файла правок. Загрузка заменяет атлас целиком и сохраняется как новая ревизия.</p>
+      <div class="modal-actions left">
+        <a class="ghost-btn" href="/api/export" download>Скачать world.json</a>
+        <label class="ghost-btn file-label">Загрузить world.json<input type="file" id="importFile" accept="application/json" hidden /></label>
+      </div>
+    </div>
+    <div class="modal-actions split">
+      <button type="button" class="ghost-btn danger" id="logoutBtn">Выйти из режима хранителя</button>
+      <button type="button" class="ghost-btn" data-close>Закрыть</button>
+    </div>
+  </div>
+</dialog>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
